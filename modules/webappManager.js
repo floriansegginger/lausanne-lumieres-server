@@ -48,7 +48,7 @@ class LiveDrawingManager extends Notifier{
 
     if (this.bannedUsers.indexOf(userId) !== -1) {
       // Block some users
-      console.error(`[${connector.ipAddress}][${connector}][${userId}] Request has been blocked by ban`);
+      console.error(`[${connector.ipAddress}][${userId}] Request has been blocked by ban`);
       return;
     }
     console.log(`[${connector.ipAddress}][${userId}] Got: ${JSON.stringify(message)})`);
@@ -58,14 +58,16 @@ class LiveDrawingManager extends Notifier{
 
   onConnection(ws) {
     ws.on('message', function onMessage(message) {
-      try {
-        var parsedMessage = JSON.parse(message);
-        this.handleMessage({
+      var connector = {
           send: ws.send.bind(ws), 
           error: ws.send.bind(ws),
-          ipAddress: this.upgradeReq.connection.remoteAddress
-        }, parsedMessage);
+          ipAddress: ws.upgradeReq.connection.remoteAddress
+        };
+      try {
+        var parsedMessage = JSON.parse(message);
+        this.handleMessage(connector, parsedMessage);
       } catch (e) {
+        this.sendError(connector, "Cannot parse your message - invalid JSON.");
         console.error(`[${ws.upgradeReq.connection.remoteAddress}][???] Cannot parse message: ${message}`);
       }
     }.bind(this));
