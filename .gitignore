@@ -1,1 +1,3 @@
 node_modules/*
+bannedUsers.json
+config.js
