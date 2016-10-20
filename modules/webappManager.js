@@ -25,12 +25,14 @@ class LiveDrawingManager extends Notifier{
     res.header('Content-Type', 'application/json');
     this.handleMessage({
       ipAddress: req.connection.remoteAddress,
-      send: res.send.bind(res),
+      send: function (data) {
+        this.send(data);
+        this.end();
+      }.bind(res),
       error: function (data) {
         this.status(400).send(data)
       }.bind(res)
     }, (req.body.type)?req.body:req.query);
-    res.end();
   }
 
   handleMessage(connector, message) {
@@ -44,6 +46,28 @@ class LiveDrawingManager extends Notifier{
       this.sendMessage(connector, 'userId', userId);
     } else {
       userId = message.userId;
+    }
+
+    if (message.type === 'get-state') {
+      if (!this.wallServer) {
+        console.log('no wall server')
+        this.sendError(connector, 'Game unkown');
+        return;
+      }
+      if (!message.data.game) {
+        console.log('no game')
+        this.sendError(connector, 'No game specified');
+        return;
+      }
+      this.wallServer.getState(message.data.game, (error, state) => {
+        if (error) {
+          console.log('no wall server')
+          this.sendError(connector, error);
+          return;
+        }
+        this.sendMessage(connector, 'state', state);
+      })
+      return;
     }
 
     if (this.bannedUsers.indexOf(userId) !== -1) {
@@ -76,7 +100,8 @@ class LiveDrawingManager extends Notifier{
   }
 
   setWallServer(wallServer) {
-    wallServer.addListener(this);
+    this.wallServer = wallServer;
+    this.wallServer.addListener(this);
   }
 
   reloadBans() {
@@ -108,7 +133,7 @@ class LiveDrawingManager extends Notifier{
         error: message
       }));
     } catch (e) {
-      console.error(`[${connector.ipAddress}][???] Failed to send message`);
+      console.error(`[${connector.ipAddress}][???] Failed to send error`);
     }
   }
 

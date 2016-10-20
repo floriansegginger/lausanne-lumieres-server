@@ -7,6 +7,7 @@ let config = require('../config');
 
 const urlRegexp = /^https?\:\/\//;
 
+// TODO : make states persista(e?)nt!
 var states = {};
 
 class WallServer extends Notifier{
@@ -53,6 +54,16 @@ class WallServer extends Notifier{
         return;
       }
     }
+  }
+
+  getState(gameName, callback) {
+    process.nextTick(function () {
+      if (states[gameName]) {
+        callback(null, states[gameName]);
+      } else {
+        callback('Game not found', null);
+      }
+    })
   }
 
   setWebappManager(manager) {
