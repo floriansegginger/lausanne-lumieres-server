@@ -27,10 +27,11 @@ class LiveDrawingManager extends Notifier{
         this.header('Access-Control-Allow-Origin','*');
         this.header('Content-Type', 'application/json');
         this.send(data);
-        this.end();
       }.bind(res),
       error: function (data) {
-        this.status(400).send(data)
+        this.header('Access-Control-Allow-Origin','*');
+        this.header('Content-Type', 'application/json');
+        this.status(400).send(data);
       }.bind(res)
     }, (req.body.type)?req.body:req.query);
   }
