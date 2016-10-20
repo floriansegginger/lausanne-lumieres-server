@@ -21,11 +21,11 @@ class LiveDrawingManager extends Notifier{
   }
 
   onGetOrPost(req, res) {
-    res.header('Access-Control-Allow-Origin','*');
-    res.header('Content-Type', 'application/json');
     this.handleMessage({
       ipAddress: req.connection.remoteAddress,
       send: function (data) {
+        this.header('Access-Control-Allow-Origin','*');
+        this.header('Content-Type', 'application/json');
         this.send(data);
         this.end();
       }.bind(res),
@@ -43,7 +43,8 @@ class LiveDrawingManager extends Notifier{
     }
     if (typeof message.userId === 'undefined'){
       userId = this.constructor.generateUserId();
-      this.sendMessage(connector, 'userId', userId);
+      this.sendMessage(connector, 'userId', {userId: userId});
+      return;
     } else {
       userId = message.userId;
     }
@@ -72,12 +73,14 @@ class LiveDrawingManager extends Notifier{
 
     if (this.bannedUsers.indexOf(userId) !== -1) {
       // Block some users
+      this.sendError(connector, `Vous êtes banni! Contactez info@pimp-my-wall.ch si vous pensez qu'il s'agit d'une erreur.`);
       console.error(`[${connector.ipAddress}][${userId}] Request has been blocked by ban`);
       return;
     }
     console.log(`[${connector.ipAddress}][${userId}] Got: ${JSON.stringify(message)})`);
     message.data.userId = userId;
     this._notifyListeners(message.type, message.data);
+    this.sendMessage(connector, 'ok', {})
   }
 
   onConnection(ws) {
