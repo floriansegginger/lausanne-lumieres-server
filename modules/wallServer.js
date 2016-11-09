@@ -8,7 +8,7 @@ let config = require('../config');
 const urlRegexp = /^https?\:\/\//;
 
 // TODO : make states persista(e?)nt!
-var states = {};
+var states = {'arcade-game': {'lol':'hehe'}};
 
 class WallServer extends Notifier{
   constructor() {
@@ -20,7 +20,7 @@ class WallServer extends Notifier{
     })
 
     wss.on('connection', (ws) => {
-      console.log(`New websocket connection from ${ws.upgradeReq.connection.remoteAddress}`);
+      console.log(`[WallServer] New websocket connection from ${ws.upgradeReq.connection.remoteAddress}`);
       ws.on('message', this.onMessage.bind(this, ws));
     });
   }
@@ -29,12 +29,11 @@ class WallServer extends Notifier{
     try {
       var jsonMessage = JSON.parse(message);
     } catch(e) {
-      console.error(`Impossible to parse receieved message ${message}`);
+      console.error(`ERR [WallServer] Impossible to parse receieved message ${message}`);
       return;
     }
     if (jsonMessage.type === 'hello') {
-      console.log("Got a hello message");
-      console.log("no handler specified - new handler created");
+      console.log("[WallServer] Got a hello message - new handler created");
       this.createHandler(ws, message);
     }
   }
@@ -61,7 +60,8 @@ class WallServer extends Notifier{
       if (states[gameName]) {
         callback(null, states[gameName]);
       } else {
-        callback('Game not found', null);
+        console.error('[WallServer] COULD NOT FIND GAME - SENDING EMPTY STATE');
+        callback(null, {});
       }
     })
   }
@@ -98,7 +98,7 @@ class WallHandler {
   }
 
   onTimeout() {
-    console.log(`Connection to game ${this.game} seems to be lost. Cleaning up...`);
+    console.log(`[WallServer] Connection to game ${this.game} seems to be lost. Cleaning up...`);
     this.cleanClose();
   }
 
@@ -107,7 +107,7 @@ class WallHandler {
   }
 
   onClose() {
-    console.log(`socket closed for ${this.game}`);
+    console.log(`[WallServer] socket closed for ${this.game}`);
     if (this._timeout) {
       clearTimeout(this._timeout);
     }
@@ -126,7 +126,7 @@ class WallHandler {
       this.sendError('Badly formatted JSON data');
       return;
     }
-    if (jsonMessage.type === 'hello') {
+    if (jsonMessage.type == 'hello') {
       if (!jsonMessage.data.game) {
         this.sendError('data.game is not defined - I do not know who you are!');
         return;
@@ -135,19 +135,19 @@ class WallHandler {
       this.sendMessage('hello', {
         state: states[this.game]
       });
-    } else if (jsonMessage.type === 'requestState') {
+    } else if (jsonMessage.type == 'requestState') {
       if (this.game === null) {
         this.sendError('Never said hello - I do not know who you are!');
         return;
       }
       this.sendMessage('state', states[this.game]);
-    } else if (jsonMessage.type === 'saveState') {
+    } else if (jsonMessage.type == 'saveState') {
       if (this.game === null) {
         this.sendError('Never said hello - I do not know who you are!');
         return;
       }
       states[this.game] = jsonMessage.data;
-    }else if (jsonMessage.type === 'ping') {
+    } else if (jsonMessage.type === 'ping') {
       // Do nothing
     } else if (jsonMessage.type === 'goodbye') {
       this.cleanClose();

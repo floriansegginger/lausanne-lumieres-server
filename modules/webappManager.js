@@ -52,18 +52,16 @@ class LiveDrawingManager extends Notifier{
 
     if (message.type === 'get-state') {
       if (!this.wallServer) {
-        console.log('no wall server')
-        this.sendError(connector, 'Game unkown');
+        this.sendError(connector, 'No wall server');
         return;
       }
       if (!message.data.game) {
-        console.log('no game')
         this.sendError(connector, 'No game specified');
         return;
       }
       this.wallServer.getState(message.data.game, (error, state) => {
         if (error) {
-          console.log('no wall server')
+          console.log('[WebappManager] State not found');
           this.sendError(connector, error);
           return;
         }
@@ -78,7 +76,7 @@ class LiveDrawingManager extends Notifier{
       console.error(`[${connector.ipAddress}][${userId}] Request has been blocked by ban`);
       return;
     }
-    console.log(`[${connector.ipAddress}][${userId}] Got: ${JSON.stringify(message)})`);
+    console.log(`[${(new Date()).getTime()}][${connector.ipAddress}][${userId}] Got: ${JSON.stringify(message)})`);
     message.data.userId = userId;
     this._notifyListeners(message.type, message.data);
     this.sendMessage(connector, 'ok', {})
