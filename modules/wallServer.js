@@ -126,6 +126,9 @@ class WallHandler {
       this.sendError('Badly formatted JSON data');
       return;
     }
+    if (jsonMessage.secret != config.secret) {
+      return;
+    }
     if (jsonMessage.type == 'hello') {
       if (!jsonMessage.data.game) {
         this.sendError('data.game is not defined - I do not know who you are!');
