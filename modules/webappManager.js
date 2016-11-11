@@ -3,8 +3,10 @@ let WebSocketServer = require('ws').Server;
 let fs = require('fs');
 let shortid = require('shortid');
 let bodyParser = require('body-parser');
+var base64 = require('base-64');
 
 let Notifier = require('./notifier')
+let pmwCrypt = require('./pmwCrypt');
 
 const RELOAD_INTERVAL = 10 * 1000;
 
@@ -33,7 +35,7 @@ class LiveDrawingManager extends Notifier{
         this.header('Content-Type', 'application/json');
         this.status(400).send(data);
       }.bind(res)
-    }, (req.body.type)?req.body:req.query);
+    }, (req.body.data)?JSON.parse(pmwCrypt.decrypt(req.body.data)):JSON.parse(pmwCrypt.decrypt(req.query.data)));
   }
 
   handleMessage(connector, message) {
@@ -90,11 +92,12 @@ class LiveDrawingManager extends Notifier{
           ipAddress: ws.upgradeReq.connection.remoteAddress
         };
       try {
-        var parsedMessage = JSON.parse(message);
+        console.log(pmwCrypt.decrypt(message));
+        var parsedMessage = JSON.parse(pmwCrypt.decrypt(message));
         this.handleMessage(connector, parsedMessage);
       } catch (e) {
         this.sendError(connector, "Cannot parse your message - invalid JSON.");
-        console.error(`[${ws.upgradeReq.connection.remoteAddress}][???] Cannot parse message: ${message}`);
+        console.error(`[${ws.upgradeReq.connection.remoteAddress}][???] Cannot parse message: ${base64.encode(message)}`);
       }
     }.bind(this));
 
@@ -120,10 +123,11 @@ class LiveDrawingManager extends Notifier{
 
   sendMessage(connector, type, data) {
     try {
-      connector.send(JSON.stringify({
+      connector.send(pmwCrypt.encrypt(JSON.stringify({
         type: type,
+        sessionId: Math.random(),
         data: data
-      }));
+      })));
     } catch (e) {
       console.error(`[${connector.ipAddress}][???] Failed to send message`);
     }

@@ -9,6 +9,11 @@ class HttpServer {
   constructor() {
     this.app = express();
 
+    this.app.use(function (req, res, next) {
+      res.header('Access-Control-Allow-Origin','*');
+      next();
+    });
+
     this.app.use(bodyParser.urlencoded({
       extended: true
     }));
