@@ -78,7 +78,7 @@ class LiveDrawingManager extends Notifier{
       console.error(`[${connector.ipAddress}][${userId}] Request has been blocked by ban`);
       return;
     }
-    console.log(`[${(new Date()).getTime()}][${connector.ipAddress}][${userId}] Got: ${JSON.stringify(message)})`);
+    // console.log(`[${(new Date()).getTime()}][${connector.ipAddress}][${userId}] Got: ${JSON.stringify(message)})`);
     message.data.userId = userId;
     this._notifyListeners(message.type, message.data);
     this.sendMessage(connector, 'ok', {})
@@ -92,7 +92,6 @@ class LiveDrawingManager extends Notifier{
           ipAddress: ws.upgradeReq.connection.remoteAddress
         };
       try {
-        console.log(pmwCrypt.decrypt(message));
         var parsedMessage = JSON.parse(pmwCrypt.decrypt(message));
         this.handleMessage(connector, parsedMessage);
       } catch (e) {
