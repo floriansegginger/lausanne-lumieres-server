@@ -126,7 +126,6 @@ class WallHandler {
       this.sendError('Badly formatted JSON data');
       return;
     }
-    console.log(jsonMessage);
     if (jsonMessage.secret != config.secret) {
       console.log(`[HACK] Wrong or missing secret on IP [${this._ws.upgradeReq.connection.remoteAddress}]!`);
       return;
