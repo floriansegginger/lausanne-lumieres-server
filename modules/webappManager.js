@@ -27,12 +27,12 @@ class LiveDrawingManager extends Notifier{
       ipAddress: req.connection.remoteAddress,
       send: function (data) {
         this.header('Access-Control-Allow-Origin','*');
-        this.header('Content-Type', 'application/json');
+        this.header('Content-Type', 'application/octet-stream');
         this.send(data);
       }.bind(res),
       error: function (data) {
         this.header('Access-Control-Allow-Origin','*');
-        this.header('Content-Type', 'application/json');
+        this.header('Content-Type', 'application/octet-stream');
         this.status(400).send(data);
       }.bind(res)
     }, (req.body.data)?JSON.parse(pmwCrypt.decrypt(req.body.data)):JSON.parse(pmwCrypt.decrypt(req.query.data)));

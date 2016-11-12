@@ -1,6 +1,7 @@
 'use strict';
 
 let ws = require('ws');
+let fs = require('fs');
 
 let Notifier = require('./notifier')
 let config = require('../config');
@@ -8,7 +9,7 @@ let config = require('../config');
 const urlRegexp = /^https?\:\/\//;
 
 // TODO : make states persista(e?)nt!
-var states = {'arcade-game': {'lol':'hehe'}};
+var states = {};
 
 class WallServer extends Notifier{
   constructor() {
@@ -23,6 +24,30 @@ class WallServer extends Notifier{
       console.log(`[WallServer] New websocket connection from ${ws.upgradeReq.connection.remoteAddress}`);
       ws.on('message', this.onMessage.bind(this, ws));
     });
+  }
+
+  start(callback) {
+    fs.readdir(__dirname + '/../states', (error, files) => {
+      var numFiles = files.length;
+      files.forEach(file => {
+        fs.readFile(__dirname + '/../states/' + file, (error, data) => {
+          numFiles--;
+          try {
+            if (error) {
+              console.error(`ERR [WallServer] Could not load game state ${file}`);
+            } else if (file.indexOf('.json') >= 0) {
+              states[file.replace('.json', '')] = JSON.parse(data);
+            }
+          } catch (e) {
+            console.error(`ERR [WallServer] Could not parse game state ${file}`);
+          } finally {
+            if (numFiles === 0) {
+              callback();
+            }
+          }
+        });
+      });
+    })
   }
 
   onMessage(ws, message) {
@@ -151,6 +176,12 @@ class WallHandler {
         return;
       }
       states[this.game] = jsonMessage.data;
+      fs.writeFile(__dirname + '/../states/' + this.game + '.json', JSON.stringify(jsonMessage.data), (error, data) => {
+        if (error) {
+          console.error(`[WallServer] Error saving state to file.`, error);
+          return;
+        }
+      });
     } else if (jsonMessage.type === 'ping') {
       // Do nothing
     } else if (jsonMessage.type === 'goodbye') {
