@@ -12,9 +12,12 @@ var mainHttpServer = new HttpServer();
 var webappManager = new WebappManager(masterServer, mainHttpServer);
 var wallServer = new WallServer();
 
-masterServer.listen(config.port, function onMasterServerStarted() {
-  console.log('server listening');
-});
+wallServer.start(() => {
+  masterServer.listen(config.port, function onMasterServerStarted() {
+    console.log('server listening');
+  });
+})
+
 
 masterServer.on('request', mainHttpServer.app);
 webappManager.setWallServer(wallServer);

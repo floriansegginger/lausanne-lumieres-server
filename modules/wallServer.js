@@ -18,7 +18,7 @@ class WallServer extends Notifier{
 
     var wss = new ws.Server({
       port: config.wallServerPort
-    })
+    });
 
     wss.on('connection', (ws) => {
       console.log(`[WallServer] New websocket connection from ${ws.upgradeReq.connection.remoteAddress}`);
