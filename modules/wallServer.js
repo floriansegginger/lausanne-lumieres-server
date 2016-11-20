@@ -21,7 +21,7 @@ class WallServer extends Notifier{
     });
 
     wss.on('connection', (ws) => {
-      console.log(`[WallServer] New websocket connection from ${ws.upgradeReq.connection.remoteAddress}`);
+      console.log(`[${new Date().toISOString()}][WallServer] New websocket connection from ${ws.upgradeReq.connection.remoteAddress}`);
       ws.on('message', this.onMessage.bind(this, ws));
     });
   }
@@ -34,12 +34,12 @@ class WallServer extends Notifier{
           numFiles--;
           try {
             if (error) {
-              console.error(`ERR [WallServer] Could not load game state ${file}`);
+              console.error(`[${new Date().toISOString()}][ERR][${new Date().toISOString()}][WallServer] Could not load game state ${file}`);
             } else if (file.indexOf('.json') >= 0) {
               states[file.replace('.json', '')] = JSON.parse(data);
             }
           } catch (e) {
-            console.error(`ERR [WallServer] Could not parse game state ${file}`);
+            console.error(`[${new Date().toISOString()}][ERR][${new Date().toISOString()}][WallServer] Could not parse game state ${file}`);
           } finally {
             if (numFiles === 0) {
               callback();
@@ -54,11 +54,11 @@ class WallServer extends Notifier{
     try {
       var jsonMessage = JSON.parse(message);
     } catch(e) {
-      console.error(`ERR [WallServer] Impossible to parse receieved message ${message}`);
+      console.error(`[${new Date().toISOString()}][ERR][WallServer] Impossible to parse receieved message ${message}`);
       return;
     }
     if (jsonMessage.type === 'hello') {
-      console.log("[WallServer] Got a hello message - new handler created");
+      console.log(`[${new Date().toISOString()}][WallServer] Got a hello message - new handler created`);
       this.createHandler(ws, message);
     }
   }
@@ -68,7 +68,7 @@ class WallServer extends Notifier{
     var handler = new WallHandler(this, ws);
     handler.onMessage(message);
     this._handlers.push(handler);
-    console.log(`[WallServer] There are now ${this._handlers.length} handlers.`);
+    console.log(`[${new Date().toISOString()}][WallServer] There are now ${this._handlers.length} handlers.`);
   }
 
   removeHandler(handler) {
@@ -85,7 +85,7 @@ class WallServer extends Notifier{
       if (states[gameName]) {
         callback(null, states[gameName]);
       } else {
-        console.error('[WallServer] COULD NOT FIND GAME - SENDING EMPTY STATE');
+        console.error(`[${new Date().toISOString()}][ERR][WallServer] Could not find game '${gameName} - sending empty state`);
         callback(null, {});
       }
     })
@@ -123,7 +123,7 @@ class WallHandler {
   }
 
   onTimeout() {
-    console.log(`[WallServer] Connection to game ${this.game} seems to be lost. Cleaning up...`);
+    console.log(`[${new Date().toISOString()}][WallServer] Connection to game ${this.game} seems to be lost. Cleaning up...`);
     this.cleanClose();
   }
 
@@ -132,7 +132,7 @@ class WallHandler {
   }
 
   onClose() {
-    console.log(`[WallServer] socket closed for ${this.game}`);
+    console.log(`[${new Date().toISOString()}][WallServer] socket closed for ${this.game}`);
     if (this._timeout) {
       clearTimeout(this._timeout);
     }
@@ -147,12 +147,12 @@ class WallHandler {
     try {
       var jsonMessage = JSON.parse(message);
     } catch(e) {
-      console.error(`Impossible to parse receieved message ${message}`);
+      console.error(`[${new Date().toISOString()}][ERR][${new Date().toISOString()}][WallServer] Impossible to parse receieved message ${message}`);
       this.sendError('Badly formatted JSON data');
       return;
     }
     if (jsonMessage.secret != config.secret) {
-      console.log(`[HACK] Wrong or missing secret on IP [${this._ws.upgradeReq.connection.remoteAddress}]!`);
+      console.log(`[${new Date().toISOString()}][ERR][HACK][WallServer] Wrong or missing secret on IP [${this._ws.upgradeReq.connection.remoteAddress}]!`);
       return;
     }
     if (jsonMessage.type == 'hello') {
@@ -178,7 +178,7 @@ class WallHandler {
       states[this.game] = jsonMessage.data;
       fs.writeFile(__dirname + '/../states/' + this.game + '.json', JSON.stringify(jsonMessage.data), (error, data) => {
         if (error) {
-          console.error(`[WallServer] Error saving state to file.`, error);
+          console.error(`[${new Date().toISOString()}][ERR][${new Date().toISOString()}][WallServer] Error saving state to file.`, error);
           return;
         }
       });

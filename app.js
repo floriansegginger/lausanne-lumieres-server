@@ -14,7 +14,7 @@ var wallServer = new WallServer();
 
 wallServer.start(() => {
   masterServer.listen(config.port, function onMasterServerStarted() {
-    console.log('server listening');
+    console.log(`[${new Date().toISOString()}] Server started`);
   });
 })
 
