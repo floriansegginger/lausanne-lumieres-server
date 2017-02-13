@@ -1,6 +1,9 @@
 let config = require('../config');
 
+// This is not used anymore
+
 function encrypt(data) {
+  return data;
   var ret = '';
   var ld = data.length;
   var lb = config.webappKey.length;
@@ -12,6 +15,7 @@ function encrypt(data) {
 }
 
 function decrypt(data) {
+  return data;
   var ld = data.length;
   var lb = config.webappKey.length;
   var ret = '';
