@@ -1,6 +1,7 @@
 let config = require('../config');
 
 function encrypt(data) {
+  return data; // Bypass encryption
   var ret = '';
   var ld = data.length;
   var lb = config.webappKey.length;
@@ -12,6 +13,7 @@ function encrypt(data) {
 }
 
 function decrypt(data) {
+  return data; // Bypass encryption
   var ld = data.length;
   var lb = config.webappKey.length;
   var ret = '';
